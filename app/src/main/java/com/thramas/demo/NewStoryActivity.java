@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.makeramen.roundedimageview.RoundedImageView;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -33,7 +34,8 @@ public class NewStoryActivity extends Activity {
     private ImageView backbutton;
     private TextView description;
     private TextView articleTitle;
-    private CircleImageView storyImage;
+    private ImageView storyImage;
+    private String url;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,19 +48,48 @@ public class NewStoryActivity extends Activity {
         backbutton = (ImageView)findViewById(R.id.back_button);
         description = (TextView)findViewById(R.id.article_desription);
         articleTitle = (TextView)findViewById(R.id.article_title);
-        storyImage = (CircleImageView)findViewById(R.id.story_image);
+        storyImage = (ImageView)findViewById(R.id.story_image);
+        ImageView authorDp = (ImageView) findViewById(R.id.author_dp);
+        TextView authorNameSmall = (TextView) findViewById(R.id.author_name_small);
+        TextView visit = (TextView)findViewById(R.id.open_web);
         String imgUrl = "";
+        String authorImg = "";
+        url = "";
         try {
             description.setText(stories.get(position).getString("description"));
             articleTitle.setText(stories.get(position).getString("title"));
             imgUrl = stories.get(position).getString("si");
+            if(stories.get(position).getString("db").equals(authorList.get(0).getString("id"))){
+                authorImg = authorList.get(0).getString("image");
+                authorNameSmall.setText(authorList.get(0).getString("username"));
+                url = stories.get(position).getString("url");
+            } else {
+                authorImg = authorList.get(1).getString("image");
+                authorNameSmall.setText(authorList.get(1).getString("username"));
+                url = stories.get(position).getString("url");
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        visit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(NewStoryActivity.this,WebViewActivity.class);
+                i.putExtra("url",url);
+                startActivity(i);
+            }
+        });
         Picasso.with(this)
                 .load(imgUrl)
                 .placeholder(R.drawable.profile)
                 .into(storyImage);
+
+        if(!authorImg.equals("")){
+        Picasso.with(this)
+                .load(authorImg)
+                .placeholder(R.drawable.profile)
+                .into(authorDp);
+        }
 
         if(description.getText().toString().equals("")) {
             description.setText("Content");

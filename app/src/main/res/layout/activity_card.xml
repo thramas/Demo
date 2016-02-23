@@ -72,10 +72,10 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="500dp"
+            android:layout_height="400dp"
             android:id="@+id/card_image"
             android:layout_below="@+id/title"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:src="@drawable/img_sample"/>
 
     </RelativeLayout>
