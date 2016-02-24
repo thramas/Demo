@@ -3,13 +3,11 @@ package com.thramas.demo;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -183,7 +181,7 @@ public class MainActivity extends Activity{
     ArrayList<String> imageList = new ArrayList<>();
     ArrayList<String> authorList = new ArrayList<>();
     ArrayList<String> titleList = new ArrayList<>();
-    ArrayList<String> isFollowing = new ArrayList<>();
+    static  ArrayList<String> isFollowing = new ArrayList<>();
     ArrayList<String> profileUrl = new ArrayList<>();
     ArrayList<JSONObject> listOfAuthors = new ArrayList<>();
     ArrayList<JSONObject> stories = new ArrayList<>();
@@ -194,6 +192,8 @@ public class MainActivity extends Activity{
     private JSONObject author2;
     private RecyclerView recList;
     private CustomAdapter ca;
+    private LinearLayoutManager llm;
+    private View.OnClickListener listener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,33 +201,67 @@ public class MainActivity extends Activity{
         setContentView(R.layout.activity_main);
 
         retrieveFromJSON();
+        listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setFollowedViews(v);
+            }
+        };
         setRecyclerView();
+    }
 
+    private void setFollowedViews(View v1) {
+
+//        int a = llm.findFirstVisibleItemPosition();
+//        int b = llm.findLastVisibleItemPosition();
+//        for (int i = a; i < b; i++) {
+//            View v = recList.getChildAt(i);
+//            CardView card = (CardView) v.findViewById(R.id.card_view);
+//            ImageView followImg = (ImageView) card.findViewById(R.id.follow_button);
+//            int po = recList.getChildAdapterPosition(v);
+//            if(isFollowing.get(po).equals("true")) {
+//                followImg.setImageDrawable(getResources().getDrawable(R.drawable.follow));
+//                card.setTag("followed");
+//            } else {
+//                followImg.setImageDrawable(getResources().getDrawable(R.drawable.unfollow));
+//                card.setTag("unfollowed");
+//            }
+//        }
+        for (int i = llm.findFirstVisibleItemPosition(); i < llm.findLastVisibleItemPosition(); i++) {
+            View v = recList.getChildAt(i);
+            ImageView img = (ImageView) v.findViewById(Integer.valueOf(v1.getTag().toString()));
+            if(img!=null){
+                if(isFollowing.get(i).equalsIgnoreCase("true")) {
+                    img.setImageDrawable(getResources().getDrawable(R.drawable.follow));
+                }else {
+                    img.setImageDrawable(getResources().getDrawable(R.drawable.unfollow));
+                }
+            }
+        }
     }
 
     private void setRecyclerView() {
         recList = (RecyclerView) findViewById(R.id.cardList);
         recList.setHasFixedSize(true);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recList.setLayoutManager(llm);
 
-        recList.addOnItemTouchListener(
-                new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        // TODO Handle item click
-                        Intent i = new Intent(MainActivity.this, NewStoryActivity.class);
-                        i.putExtra("position", position);
-                        i.putExtra("file",file);
-                        i.putExtra("authorMap", authorMap);
-                        startActivityForResult(i, 0);
-                        overridePendingTransition(R.anim.slidebottomtop, R.anim.stillanim);
-                    }
-                })
-        );
+//        recList.addOnItemTouchListener(
+//                new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener() {
+//                    @Override
+//                    public void onItemClick(View view, int position) {
+//                        Intent i = new Intent(MainActivity.this, NewStoryActivity.class);
+//                        i.putExtra("position", position);
+//                        i.putExtra("file",file);
+//                        i.putExtra("authorMap", authorMap);
+//                        startActivityForResult(i, 0);
+//                        overridePendingTransition(R.anim.slidebottomtop, R.anim.stillanim);
+//                    }
+//                })
+//        );
 
-        ca = new CustomAdapter(createList(mArray.length()-2),this);
+        ca = new CustomAdapter(createList(mArray.length()-2),this,file,authorMap,llm,isFollowing,listener);
         recList.setAdapter(ca);
     }
 
@@ -238,8 +272,8 @@ public class MainActivity extends Activity{
             if (requestCode == 0) {
                 authorMap = (HashMap<String, Boolean>) data.getSerializableExtra("authorMap");
                 updateFollowingList();
-                ca = new CustomAdapter(createList(mArray.length()-2),this);
-                ca.notifyDataSetChanged();
+                ca = new CustomAdapter(createList(mArray.length()-2),this,file,authorMap,llm, isFollowing,listener);
+//                ca.notifyDataSetChanged();
                 recList.setAdapter(ca);
             }
         }
