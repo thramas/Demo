@@ -81,6 +81,7 @@ public class CustomAdapter extends  RecyclerView.Adapter<CustomAdapter.ContactVi
         contactViewHolder.authorName.setText(ci.author);
         contactViewHolder.verbName.setText(ci.verb);
         contactViewHolder.title.setText(ci.title);
+        contactViewHolder.position = i;
         contactViewHolder.cardView.setTag("unfollowed");
         contactViewHolder.followBtn.setId(500 + i);
 
@@ -150,6 +151,7 @@ public class CustomAdapter extends  RecyclerView.Adapter<CustomAdapter.ContactVi
         } else {
             contactViewHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.unfollow));
         }
+        listener.onClick(contactViewHolder.cardView);
     }
 
     private void updateFollowingList() {

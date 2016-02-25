@@ -3,9 +3,12 @@ package com.thramas.demo;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -192,6 +195,7 @@ public class MainActivity extends Activity {
     private CustomAdapter ca;
     private LinearLayoutManager llm;
     private View.OnClickListener listener;
+    private RecyclerView.ViewHolder viewHolderGlo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,10 +210,31 @@ public class MainActivity extends Activity {
             }
         };
         setRecyclerView();
+
+        recList.setOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                    setFollowedViews(recyclerView);
+            }
+        });
     }
 
     private void setFollowedViews(View view) {
         createList(isFollowing.size());
+        for (int i = llm.findFirstVisibleItemPosition(); i <= llm.findLastVisibleItemPosition(); i++) {
+            CardView card = (CardView)llm.findViewByPosition(i);
+            Log.d("position",llm.findFirstVisibleItemPosition()+" : " + llm.findLastVisibleItemPosition() + " " + ((card == null) ? "null" : "not null"));
+            ImageView img;
+            if( card != null) {
+                img = (ImageView) card.getTouchables().get(0);
+                if (isFollowing.get(i).equals("true")) {
+                    img.setImageDrawable(getResources().getDrawable(R.drawable.follow));
+                } else {
+                    img.setImageDrawable(getResources().getDrawable(R.drawable.unfollow));
+                }
+            }
+        }
     }
 
     private void setRecyclerView() {
