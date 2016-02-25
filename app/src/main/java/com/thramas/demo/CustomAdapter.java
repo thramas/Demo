@@ -1,6 +1,5 @@
 package com.thramas.demo;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.CardView;
@@ -19,7 +18,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -31,7 +29,6 @@ public class CustomAdapter extends  RecyclerView.Adapter<CustomAdapter.ContactVi
 
     private List<StoryObject> contactList;
     public static Context context;
-    private String followFlag;
     private String file;
     private HashMap<String,Boolean> authorMap;
     private int clicked = 0;
@@ -42,6 +39,7 @@ public class CustomAdapter extends  RecyclerView.Adapter<CustomAdapter.ContactVi
     private ArrayList<JSONObject> authorList = new ArrayList<>();
     private JSONArray mArray;
     private View.OnClickListener listener;
+    private String tag = "unfollowed";
 
     public CustomAdapter(List<StoryObject> contactList,Context context,String file, HashMap<String,Boolean> authorMap,RecyclerView.LayoutManager llm, ArrayList<String> isFollowing,View.OnClickListener listener) {
         this.contactList = contactList;
@@ -50,6 +48,7 @@ public class CustomAdapter extends  RecyclerView.Adapter<CustomAdapter.ContactVi
         this.file = file;
         this.llm = llm;
         this.listener = listener;
+        getData();
     }
 
 
@@ -77,57 +76,62 @@ public class CustomAdapter extends  RecyclerView.Adapter<CustomAdapter.ContactVi
         }
     }
     @Override
-    public void onBindViewHolder(final ContactViewHolder contactViewHolder, int i) {
+    public void onBindViewHolder(final ContactViewHolder contactViewHolder, final int i) {
         StoryObject ci = contactList.get(i);
         contactViewHolder.authorName.setText(ci.author);
         contactViewHolder.verbName.setText(ci.verb);
         contactViewHolder.title.setText(ci.title);
         contactViewHolder.cardView.setTag("unfollowed");
-        contactViewHolder.followBtn.setId(i);
-        getData();
+        contactViewHolder.followBtn.setId(500 + i);
+
         if(ci.isFollowing.equals("true")) {
             contactViewHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.follow));
             contactViewHolder.followBtn.setTag("followed");
-            contactViewHolder.cardView.setTag("followed");
         } else {
             contactViewHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.unfollow));
             contactViewHolder.followBtn.setTag("unfollowed");
-            contactViewHolder.cardView.setTag("unfollowed");
         }
 
         position = i;
+        final ContactViewHolder mHolder = contactViewHolder;
+        if(!tag.equals("followed"))
+        tag = mHolder.followBtn.getTag().toString();
        contactViewHolder.followBtn.setOnClickListener(new View.OnClickListener() {
            @Override
            public void onClick(View vvvvv) {
-               final String getAuthorIndex = getIdOfAuthor();
-               if (contactViewHolder.followBtn.getTag().equals("unfollowed")) {
-                   contactViewHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.follow));
-                   contactViewHolder.followBtn.setTag("followed");
-                   contactViewHolder.cardView.setTag("followed");
-                   followFlag = "true";
+               final String getAuthorIndex = getIdOfAuthor(i);
+               if (tag.equals("unfollowed")) {
+                   mHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.follow));
+                   mHolder.followBtn.setTag("followed");
+                   tag = "followed";
                    setFlags(0, getAuthorIndex);
                } else {
-                   contactViewHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.unfollow));
-                   contactViewHolder.followBtn.setTag("unfollowed");
-                   contactViewHolder.cardView.setTag("unfollowed");
-                   followFlag = "false";
+                   mHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.unfollow));
+                   mHolder.followBtn.setTag("unfollowed");
+                   tag = "unfollowed";
                    setFlags(1, getAuthorIndex);
                }
                updateFollowingList();
+               vvvvv.setId(i);
+               listener.onClick(vvvvv);
+               if(MainActivity.isFollowing.get(i).equals("true")) {
+                   mHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.follow));
+               } else {
+                   mHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.unfollow));
+               }
            }
        });
-//
-//        contactViewHolder.cardView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent i = new Intent(context, NewStoryActivity.class);
-//                i.putExtra("position", i);
-//                i.putExtra("file",file);
-//                i.putExtra("authorMap", authorMap);
-//                ((Activity)context).startActivityForResult(i, 0);
-//                ((Activity)context).overridePendingTransition(R.anim.slidebottomtop, R.anim.stillanim);
-//            }
-//        });
+
+        contactViewHolder.image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, NewStoryActivity.class);
+                intent.putExtra("position", i);
+                intent.putExtra("authorMap", authorMap);
+                ((MainActivity) context).startActivityForResult(intent,0);
+                ((MainActivity) context).overridePendingTransition(R.anim.slidebottomtop, R.anim.stillanim);
+            }
+        });
         clicked = contactViewHolder.position;
 
         Picasso.with(context)
@@ -141,18 +145,19 @@ public class CustomAdapter extends  RecyclerView.Adapter<CustomAdapter.ContactVi
                 .placeholder(R.drawable.profile)
                 .into(contactViewHolder.authorImage);
 
-        View v1 = new View(context);
-        v1.setTag(i);
-        listener.onClick(v1);
-
+        if(MainActivity.isFollowing.get(i).equals("true")) {
+            contactViewHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.follow));
+        } else {
+            contactViewHolder.followBtn.setImageDrawable(context.getResources().getDrawable(R.drawable.unfollow));
+        }
     }
 
     private void updateFollowingList() {
         for (int i = 0; i < MainActivity.isFollowing.size(); i++) {
             try {
-                if(authorMap.get(stories.get(i).getString("db"))) {
-                    MainActivity.isFollowing.set(i, authorMap.get(stories.get(position).getString("db")).toString());
-                }
+//                if(authorMap.get(stories.get(i).getString("db"))) {
+                    MainActivity.isFollowing.set(i, authorMap.get(stories.get(i).getString("db")).toString());
+//                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -169,10 +174,10 @@ public class CustomAdapter extends  RecyclerView.Adapter<CustomAdapter.ContactVi
         }
     }
 
-    private String getIdOfAuthor() {
+    private String getIdOfAuthor(int pos) {
         for(int i = 0;i < authorList.size();i++) {
             try {
-                if(authorList.get(i).getString("id").equals(stories.get(position).getString("db"))) {
+                if(authorList.get(i).getString("id").equals(stories.get(pos).getString("db"))) {
                     return authorList.get(i).getString("id");
                 }
             } catch (JSONException e) {

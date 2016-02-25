@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.makeramen.roundedimageview.RoundedImageView;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -16,8 +15,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class NewStoryActivity extends Activity {
@@ -74,8 +71,8 @@ public class NewStoryActivity extends Activity {
         visit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(NewStoryActivity.this,WebViewActivity.class);
-                i.putExtra("url",url);
+                Intent i = new Intent(NewStoryActivity.this, WebViewActivity.class);
+                i.putExtra("url", url);
                 startActivity(i);
             }
         });
@@ -111,10 +108,10 @@ public class NewStoryActivity extends Activity {
             public void onClick(View view) {
                 if(follow.getText().toString().equals("FOLLOW")){
                     follow.setText("UNFOLLOW");
-                    setFlags(0,getAuthorIndex);
+                    setFlags(0, getAuthorIndex);
                 } else {
                     follow.setText("FOLLOW");
-                    setFlags(1,getAuthorIndex);
+                    setFlags(1, getAuthorIndex);
                 }
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("authorMap",authorMap);
@@ -171,7 +168,7 @@ public class NewStoryActivity extends Activity {
     private void getData() {
         Intent i = getIntent();
         position = i.getIntExtra("position",0);
-        file = i.getStringExtra("file");
+        file = MainActivity.file;
         try {
             mArray = new JSONArray(file);
             authorList.add(mArray.getJSONObject(0));
